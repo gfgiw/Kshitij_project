@@ -1,0 +1,87 @@
+import csv
+from datetime import datetime
+from pathlib import Path
+
+FILE = Path("expenses.csv")
+
+def create_file():
+    if not FILE.exists():
+        with open(FILE, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["date", "amount", "category", "note"])
+
+def add_expense():
+    create_file()
+    date = input("Enter date (YYYY-MM-DD, leave empty for today): ").strip()
+    if not date:
+        date = datetime.today().strftime("%Y-%m-%d")
+    amount = input("Enter amount: ₹").strip()
+    category = input("Enter category (e.g. Food, Travel, Bills): ").strip()
+    note = input("Enter a short note (optional): ").strip()
+    with open(FILE, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([date, amount, category, note])
+    print("\n✅ Expense added successfully!\n")
+
+def view_expenses():
+    create_file()
+    with open(FILE, "r", encoding="utf-8") as f:
+        reader = list(csv.reader(f))
+    if len(reader) <= 1:
+        print("No expenses found yet.\n")
+        return
+    print("\n------ All Expenses ------")
+    total = 0.0
+    for i, row in enumerate(reader[1:], 1):
+        date, amount, category, note = row
+        print(f"{i:>2}. {date} | ₹{amount:>6} | {category:<10} | {note}")
+        try:
+            total += float(amount)
+        except ValueError:
+            pass
+    print("--------------------------")
+    print(f" Total Spent: ₹{total:.2f}\n")
+
+def show_summary():
+    create_file()
+    with open(FILE, "r", encoding="utf-8") as f:
+        reader = list(csv.reader(f))[1:]
+    if not reader:
+        print("No expenses found.\n")
+        return
+    category_sum = {}
+    for row in reader:
+        date, amount, category, note = row
+        try:
+            amt = float(amount)
+            category_sum[category] = category_sum.get(category, 0) + amt
+        except ValueError:
+            pass
+    print("\n------ Category Summary ------")
+    for cat, total in category_sum.items():
+        print(f"{cat:<10}: ₹{total:.2f}")
+    print("------------------------------\n")
+
+def main():
+    create_file()
+    while True:
+        print("===== Expense Tracker =====")
+        print("1. Add Expense")
+        print("2. View All Expenses")
+        print("3. Show Category Summary")
+        print("4. Exit")
+        choice = input("Enter your choice (1-4): ").strip()
+        if choice == "1":
+            add_expense()
+        elif choice == "2":
+            view_expenses()
+        elif choice == "3":
+            show_summary()
+        elif choice == "4":
+            print("Goodbye! ")
+            break
+        else:
+            print("Invalid choice, please try again.\n")
+
+if __name__ == "__main__":
+    main()
